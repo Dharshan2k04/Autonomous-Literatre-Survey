@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import asyncio
 from uuid import UUID
 
 from fastapi import APIRouter, BackgroundTasks, Depends, Query
@@ -39,15 +38,11 @@ async def create_survey(
     # Run the agent workflow in the background
     async def run_workflow():
         async with AsyncSessionLocal() as session:
-            try:
-                workflow = SurveyWorkflow(session)
-                await workflow.run(survey_id, body.topic, user_id)
-                await session.commit()
-            except Exception as e:
-                await session.rollback()
-                raise
+            workflow = SurveyWorkflow(session)
+            await workflow.run(survey_id, body.topic, user_id)
+            await session.commit()
 
-    background_tasks.add_task(asyncio.ensure_future, run_workflow())
+    background_tasks.add_task(run_workflow)
 
     return SurveyResponse.model_validate(survey)
 

@@ -1,19 +1,25 @@
 import asyncio
 from typing import AsyncGenerator, Generator
+from unittest.mock import AsyncMock, patch
 
 import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
+from sqlalchemy.pool import StaticPool
 
-from app.config import settings
 from app.database import Base, get_db
 from app.main import app
 
-# Use test database
-TEST_DATABASE_URL = settings.DATABASE_URL
+# Use SQLite in-memory database for tests — no PostgreSQL required
+TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
 
-engine_test = create_async_engine(TEST_DATABASE_URL, echo=False)
+engine_test = create_async_engine(
+    TEST_DATABASE_URL,
+    connect_args={"check_same_thread": False},
+    poolclass=StaticPool,
+    echo=False,
+)
 TestSessionLocal = async_sessionmaker(engine_test, class_=AsyncSession, expire_on_commit=False)
 
 
@@ -46,7 +52,12 @@ async def client(db_session: AsyncSession) -> AsyncGenerator[AsyncClient, None]:
         yield db_session
 
     app.dependency_overrides[get_db] = override_get_db
+
+    # Route background tasks to the test SQLite DB and skip actual agent execution
     transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://test") as ac:
-        yield ac
+    with patch("app.api.v1.surveys.AsyncSessionLocal", new=TestSessionLocal), \
+         patch("app.agents.graph.SurveyWorkflow.run", new_callable=AsyncMock):
+        async with AsyncClient(transport=transport, base_url="http://test") as ac:
+            yield ac
+
     app.dependency_overrides.clear()

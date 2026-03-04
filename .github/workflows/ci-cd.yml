@@ -103,10 +103,14 @@ jobs:
 
       - name: Run tests
         env:
-          DATABASE_URL: postgresql+asyncpg://testuser:testpass@localhost:5432/testdb
+          POSTGRES_USER: testuser
+          POSTGRES_PASSWORD: testpass
+          POSTGRES_HOST: localhost
+          POSTGRES_PORT: 5432
+          POSTGRES_DB: testdb
           REDIS_HOST: localhost
           REDIS_PORT: 6379
-          JWT_SECRET_KEY: test-secret-key-for-ci
+          SECRET_KEY: test-secret-key-for-ci
           ENVIRONMENT: testing
         run: |
           cd backend

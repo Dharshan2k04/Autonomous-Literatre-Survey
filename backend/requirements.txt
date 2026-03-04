@@ -1,8 +1,8 @@
-# Auto-generated from pyproject.toml for Docker builds
 fastapi==0.115.6
 uvicorn[standard]==0.34.0
 python-multipart==0.0.20
 websockets==14.1
+itsdangerous==2.2.0
 sqlalchemy[asyncio]==2.0.36
 asyncpg==0.30.0
 alembic==1.14.0
@@ -19,7 +19,7 @@ openai==1.58.1
 tiktoken==0.8.0
 pinecone-client==5.0.1
 redis[hiredis]==5.2.1
-pydantic==2.10.4
+pydantic[email]==2.10.4
 pydantic-settings==2.7.1
 structlog==24.4.0
 tenacity==9.0.0

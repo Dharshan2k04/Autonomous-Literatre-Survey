@@ -13,10 +13,11 @@ class TestAuthRegister:
                 "full_name": "Test User",
             },
         )
-        assert response.status_code == 200
+        assert response.status_code == 201
         data = response.json()
-        assert "access_token" in data
-        assert "refresh_token" in data
+        assert "tokens" in data
+        assert "access_token" in data["tokens"]
+        assert "refresh_token" in data["tokens"]
         assert data["user"]["email"] == "test@example.com"
 
     async def test_register_duplicate_email(self, client: AsyncClient):
@@ -59,7 +60,7 @@ class TestAuthLogin:
         )
         assert response.status_code == 200
         data = response.json()
-        assert "access_token" in data
+        assert "access_token" in data["tokens"]
 
     async def test_login_wrong_password(self, client: AsyncClient):
         await client.post(
@@ -88,7 +89,7 @@ class TestAuthMe:
                 "full_name": "Me User",
             },
         )
-        token = reg.json()["access_token"]
+        token = reg.json()["tokens"]["access_token"]
         response = await client.get(
             "/api/v1/auth/me",
             headers={"Authorization": f"Bearer {token}"},

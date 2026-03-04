@@ -8,7 +8,6 @@ from typing import Dict, Set
 from uuid import UUID
 
 from fastapi import WebSocket, WebSocketDisconnect
-from jose import JWTError
 
 from app.core.logging import get_logger
 from app.core.security import decode_token
@@ -35,10 +34,10 @@ class ConnectionManager:
 
         try:
             payload = decode_token(token)
-            if payload.get("type") != "access":
+            if payload is None or payload.get("type") != "access":
                 await websocket.close(code=4001, reason="Invalid token type")
                 return False
-        except JWTError:
+        except Exception:
             await websocket.close(code=4001, reason="Invalid or expired token")
             return False
 
