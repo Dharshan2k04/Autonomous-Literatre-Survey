@@ -165,7 +165,7 @@ async def _fetch_crossref(query: str, client: httpx.AsyncClient) -> List[Dict[st
             "https://api.crossref.org/works",
             params=params,
             timeout=20,
-            headers={"User-Agent": "AutonomousLiteratureSurvey/1.0 (mailto:admin@example.com)"},
+            headers={"User-Agent": f"AutonomousLiteratureSurvey/1.0 (mailto:{settings.crossref_contact_email})"},
         )
         resp.raise_for_status()
         items = resp.json().get("message", {}).get("items", [])

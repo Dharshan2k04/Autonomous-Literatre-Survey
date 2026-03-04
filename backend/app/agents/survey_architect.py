@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import json
 from collections import defaultdict
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 import structlog
@@ -54,12 +54,14 @@ def _cosine_similarity(a: List[float], b: List[float]) -> float:
 def _cluster_papers(
     papers: List[Dict[str, Any]],
     embeddings: List[List[float]],
-    threshold: float = 0.72,
+    threshold: Optional[float] = None,
 ) -> List[Dict[str, Any]]:
     """
     Simple greedy clustering: assign each paper to an existing cluster centroid
     if similarity > threshold, otherwise create a new cluster.
     """
+    if threshold is None:
+        threshold = settings.clustering_similarity_threshold
     if not embeddings:
         return papers
 

@@ -49,12 +49,19 @@ class Settings(BaseSettings):
     arxiv_max_results: int = 20
     semantic_scholar_max_results: int = 20
     crossref_max_results: int = 20
+    crossref_contact_email: str = "contact@autlit-survey.example.com"
+
+    # ------------------------------------------------------------------
+    # Pinecone
+    # ------------------------------------------------------------------
+    pinecone_index_dimension: int = 3072  # text-embedding-3-large; update if embedding_model changes
 
     # ------------------------------------------------------------------
     # Survey settings
     # ------------------------------------------------------------------
     max_papers_per_survey: int = 50
     embedding_batch_size: int = 32
+    clustering_similarity_threshold: float = 0.72
 
 
 settings = Settings()

@@ -133,6 +133,13 @@ resource "aws_cloudwatch_log_group" "frontend" {
   tags              = local.common_tags
 }
 
+resource "aws_ssm_parameter" "database_url" {
+  name  = "/${local.name_prefix}/DATABASE_URL"
+  type  = "SecureString"
+  value = "postgresql+asyncpg://${var.db_username}:${var.db_password}@${aws_db_instance.postgres.address}:5432/${var.db_name}"
+  tags  = local.common_tags
+}
+
 # -----------------------------------------------------------------------
 # ECS Task Definitions
 # -----------------------------------------------------------------------
@@ -153,11 +160,11 @@ resource "aws_ecs_task_definition" "backend" {
 
     environment = [
       { name = "APP_ENV", value = var.environment },
-      { name = "DATABASE_URL", value = "postgresql+asyncpg://${var.db_username}:${var.db_password}@${aws_db_instance.postgres.address}:5432/${var.db_name}" },
       { name = "REDIS_URL", value = "redis://${aws_elasticache_replication_group.redis.primary_endpoint_address}:6379/0" },
     ]
 
     secrets = [
+      { name = "DATABASE_URL",   valueFrom = aws_ssm_parameter.database_url.arn },
       { name = "OPENAI_API_KEY",  valueFrom = aws_ssm_parameter.openai_api_key.arn },
       { name = "PINECONE_API_KEY", valueFrom = aws_ssm_parameter.pinecone_api_key.arn },
     ]

@@ -27,7 +27,7 @@ export default function NewSurvey() {
     <div className="max-w-2xl mx-auto">
       <h1 className="text-2xl font-bold text-gray-900 mb-2">New Literature Survey</h1>
       <p className="text-gray-500 mb-8">
-        Enter a research topic and our AI agents will automatically retrieve, analyse,
+        Enter a research topic and our AI agents will automatically retrieve, analyze,
         and compile a structured literature survey with IEEE citations.
       </p>
 

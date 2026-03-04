@@ -35,7 +35,7 @@ def _get_pinecone_index():
         if settings.pinecone_index_name not in existing:
             pc.create_index(
                 name=settings.pinecone_index_name,
-                dimension=3072,  # text-embedding-3-large dimension
+                dimension=settings.pinecone_index_dimension,
                 metric="cosine",
                 spec=ServerlessSpec(cloud="aws", region="us-east-1"),
             )
