@@ -1,0 +1,10 @@
+aws_region   = "us-east-1"
+environment  = "prod"
+project_name = "litsurvey"
+vpc_cidr     = "10.0.0.0/16"
+db_name      = "litsurvey"
+db_username  = "litsurvey"
+
+# These must be provided via CLI or CI/CD secrets:
+# db_password, backend_image, frontend_image, jwt_secret_key
+# openai_api_key, anthropic_api_key, pinecone_api_key
