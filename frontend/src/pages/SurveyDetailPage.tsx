@@ -41,7 +41,7 @@ export function SurveyDetailPage() {
   useEffect(() => {
     if (!surveyId) return;
     loadSurvey();
-  }, [surveyId, loadSurvey]);
+  }, [surveyId]);
 
   // Update survey from WS progress
   useEffect(() => {

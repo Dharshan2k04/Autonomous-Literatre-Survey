@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import uuid
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -68,8 +68,6 @@ class SurveyService:
         Uses a window function to retrieve the total count and the current page
         in a single database round-trip instead of two separate queries.
         """
-        from sqlalchemy import func
-
         result = await self.db.execute(
             select(Survey, func.count(Survey.id).over().label("total"))
             .where(Survey.user_id == user_id)
