@@ -13,7 +13,7 @@ class TestSurveys:
                 "full_name": "Survey User",
             },
         )
-        return reg.json()["access_token"]
+        return reg.json()["tokens"]["access_token"]
 
     async def test_create_survey(self, client: AsyncClient):
         token = await self._get_token(client, "create_survey@example.com")
@@ -26,7 +26,7 @@ class TestSurveys:
             },
             headers={"Authorization": f"Bearer {token}"},
         )
-        assert response.status_code == 200
+        assert response.status_code == 201
         data = response.json()
         assert data["topic"] == "Machine Learning in Healthcare"
         assert data["status"] == "pending"
@@ -67,7 +67,7 @@ class TestSurveyDetail:
                 "full_name": "Detail User",
             },
         )
-        token = reg.json()["access_token"]
+        token = reg.json()["tokens"]["access_token"]
         create = await client.post(
             "/api/v1/surveys",
             json={"topic": "Detail Survey", "max_papers": 10},
@@ -90,7 +90,7 @@ class TestSurveyDetail:
                 "full_name": "No Survey",
             },
         )
-        token = reg.json()["access_token"]
+        token = reg.json()["tokens"]["access_token"]
         response = await client.get(
             "/api/v1/surveys/00000000-0000-0000-0000-000000000000",
             headers={"Authorization": f"Bearer {token}"},

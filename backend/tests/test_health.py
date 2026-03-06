@@ -9,11 +9,11 @@ class TestHealth:
         assert response.status_code == 200
         data = response.json()
         assert data["status"] == "healthy"
-        assert "version" in data
+        assert "service" in data
 
     async def test_health_ready(self, client: AsyncClient):
         response = await client.get("/api/v1/health/ready")
         assert response.status_code == 200
         data = response.json()
-        assert "database" in data
-        assert "redis" in data
+        assert "checks" in data
+        assert "database" in data["checks"]

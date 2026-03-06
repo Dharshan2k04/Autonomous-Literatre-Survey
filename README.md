@@ -128,8 +128,13 @@ npm run dev
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `DATABASE_URL` | Yes | PostgreSQL connection string |
-| `JWT_SECRET_KEY` | Yes | Secret for JWT tokens |
+| `POSTGRES_HOST` | Yes | PostgreSQL host (default: `localhost`) |
+| `POSTGRES_PORT` | Yes | PostgreSQL port (default: `5432`) |
+| `POSTGRES_USER` | Yes | PostgreSQL username |
+| `POSTGRES_PASSWORD` | Yes | PostgreSQL password |
+| `POSTGRES_DB` | Yes | PostgreSQL database name |
+| `DATABASE_URL` | No | Full PostgreSQL URL — overrides `POSTGRES_*` fields when set |
+| `SECRET_KEY` | Yes | Secret for JWT tokens and session signing |
 | `REDIS_HOST` | No | Redis host (graceful degradation) |
 | `OPENAI_API_KEY` | No* | OpenAI API key |
 | `ANTHROPIC_API_KEY` | No* | Anthropic API key |
@@ -202,11 +207,15 @@ Required GitHub Secrets:
 ## Testing
 
 ```bash
-# Backend
+# Backend — no database required (uses SQLite in-memory)
 cd backend
+pip install -r requirements.txt
+pip install pytest pytest-asyncio pytest-cov httpx aiosqlite
+
+# All tests
 pytest tests/ -v --cov=app
 
-# Security unit tests (no DB needed)
+# Security unit tests only (no infrastructure needed at all)
 pytest tests/test_security.py -v
 ```
 

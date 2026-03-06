@@ -16,7 +16,7 @@ class TestPasswordHashing:
 
 class TestJWT:
     def test_create_and_decode_token(self):
-        token = create_access_token(data={"sub": "user-123"})
+        token = create_access_token(subject="user-123")
         payload = decode_token(token)
         assert payload is not None
         assert payload["sub"] == "user-123"

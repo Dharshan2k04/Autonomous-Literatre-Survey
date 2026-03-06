@@ -59,10 +59,9 @@ def create_refresh_token(subject: str | UUID) -> str:
     return jwt.encode(claims, settings.SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
 
 
-def decode_token(token: str) -> dict[str, Any]:
-    """Decode and validate a JWT token.
-
-    Raises:
-        JWTError: If the token is invalid or expired.
-    """
-    return jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
+def decode_token(token: str) -> dict[str, Any] | None:
+    """Decode and validate a JWT token. Returns None if the token is invalid or expired."""
+    try:
+        return jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
+    except JWTError:
+        return None

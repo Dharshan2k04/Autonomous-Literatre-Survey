@@ -99,9 +99,8 @@ class AuthService:
 
     async def refresh_tokens(self, refresh_token: str) -> TokenResponse:
         """Issue new tokens using a valid refresh token."""
-        try:
-            payload = decode_token(refresh_token)
-        except Exception:
+        payload = decode_token(refresh_token)
+        if payload is None:
             raise AuthenticationError("Invalid refresh token")
 
         if payload.get("type") != "refresh":
