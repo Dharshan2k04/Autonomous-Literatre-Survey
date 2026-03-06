@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import asyncio
+import datetime
+import math
 from typing import Any
 
 from rapidfuzz import fuzz
@@ -97,6 +99,9 @@ class CitationExplorerAgent:
     def _deduplicate(self, papers: list[PaperSearchResult]) -> list[PaperSearchResult]:
         """Remove duplicate papers using DOI matching and title similarity."""
         seen_dois: set[str] = set()
+        # O(1) exact-match set avoids fuzzy scan for perfect duplicates
+        seen_titles_exact: set[str] = set()
+        # Full list kept for fuzzy near-duplicate detection
         seen_titles: list[str] = []
         unique: list[PaperSearchResult] = []
 
@@ -114,6 +119,11 @@ class CitationExplorerAgent:
 
             # Title-based fuzzy dedup
             title_normalized = paper.title.lower().strip()
+
+            # Fast exact-match shortcut (O(1)) — skips fuzzy scan for identical titles
+            if title_normalized in seen_titles_exact:
+                continue
+
             is_duplicate = False
             for seen_title in seen_titles:
                 if fuzz.ratio(title_normalized, seen_title) >= TITLE_SIMILARITY_THRESHOLD:
@@ -121,6 +131,7 @@ class CitationExplorerAgent:
                     break
 
             if not is_duplicate:
+                seen_titles_exact.add(title_normalized)
                 seen_titles.append(title_normalized)
                 unique.append(paper)
 
@@ -128,13 +139,10 @@ class CitationExplorerAgent:
 
     def _rank_papers(self, papers: list[PaperSearchResult]) -> list[PaperSearchResult]:
         """Rank papers by a composite score of citation count and recency."""
-        import datetime
-
         current_year = datetime.datetime.now().year
 
         def score(paper: PaperSearchResult) -> float:
             # Citation score: log scale to prevent extreme outliers
-            import math
             citation_score = math.log1p(paper.citation_count) * 10
 
             # Recency score: papers from last 5 years get a boost

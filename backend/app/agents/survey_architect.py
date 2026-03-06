@@ -160,6 +160,10 @@ Analyze these paper clusters and:
         """
         logger.info("survey_generation_start", topic=topic)
 
+        # Build lookup dicts to avoid O(n²) linear searches per category/paper
+        citations_by_number = {c.get("ieee_number"): c for c in citations}
+        papers_by_number = {p.get("ieee_number"): p for p in papers}
+
         # Build the bibliography
         bibliography = "\n".join(c.get("ieee_citation", "") for c in citations)
 
@@ -169,13 +173,9 @@ Analyze these paper clusters and:
         for cat in categories:
             cat_papers = []
             for pnum in cat.get("paper_numbers", []):
-                # Find the matching paper and citation
-                matching_citation = next(
-                    (c for c in citations if c.get("ieee_number") == pnum), None
-                )
-                matching_paper = next(
-                    (p for p in papers if p.get("ieee_number") == pnum), None
-                )
+                # O(1) lookup instead of linear scan
+                matching_citation = citations_by_number.get(pnum)
+                matching_paper = papers_by_number.get(pnum)
                 if matching_citation:
                     cat_papers.append({
                         "ieee_number": pnum,
@@ -273,6 +273,9 @@ Make it publication-ready with proper academic writing."""
         self, topic: str, citations: list[dict], categories: list[dict]
     ) -> str:
         """Generate a basic survey structure without LLM."""
+        # Build lookup dict to avoid O(n²) linear searches
+        citations_by_number = {c.get("ieee_number"): c for c in citations}
+
         sections = [f"# Literature Survey: {topic}\n"]
         sections.append("## Abstract\n")
         sections.append(f"This survey reviews {len(citations)} papers on the topic of {topic}.\n")
@@ -283,7 +286,7 @@ Make it publication-ready with proper academic writing."""
             sections.append(f"## {cat.get('name', 'Section')}\n")
             sections.append(f"{cat.get('description', '')}\n")
             for pnum in cat.get("paper_numbers", []):
-                matching = next((c for c in citations if c.get("ieee_number") == pnum), None)
+                matching = citations_by_number.get(pnum)
                 if matching:
                     sections.append(f"- [{pnum}] {matching.get('summary', '')}\n")
 

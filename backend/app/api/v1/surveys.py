@@ -2,15 +2,14 @@
 
 from __future__ import annotations
 
-import asyncio
 from uuid import UUID
 
 from fastapi import APIRouter, BackgroundTasks, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import get_current_active_user
 from app.agents.graph import SurveyWorkflow
-from app.database import get_db, AsyncSessionLocal
+from app.api.deps import get_current_active_user
+from app.database import AsyncSessionLocal, get_db
 from app.models.user import User
 from app.schemas.survey import (
     SurveyCreate,
@@ -43,11 +42,11 @@ async def create_survey(
                 workflow = SurveyWorkflow(session)
                 await workflow.run(survey_id, body.topic, user_id)
                 await session.commit()
-            except Exception as e:
+            except Exception:
                 await session.rollback()
                 raise
 
-    background_tasks.add_task(asyncio.ensure_future, run_workflow())
+    background_tasks.add_task(run_workflow)
 
     return SurveyResponse.model_validate(survey)
 
