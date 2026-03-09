@@ -142,7 +142,7 @@ export function SurveyDetailPage() {
     return <div className="text-center text-dark-400 py-20">Survey not found</div>;
   }
 
-  const tabs: { key: Tab; label: string; icon: React.ReactNode }[] = [
+  const tabs: { key: Tab; label: string; icon: JSX.Element }[] = [
     { key: "progress", label: "Progress", icon: <FileText className="h-4 w-4" /> },
     { key: "survey", label: "Survey", icon: <BookOpen className="h-4 w-4" /> },
     { key: "papers", label: `Papers (${papers.length})`, icon: <FileText className="h-4 w-4" /> },
@@ -195,7 +195,7 @@ export function SurveyDetailPage() {
         {tabs.map((tab) => (
           <button
             key={tab.key}
-            onClick={() => setActiveTab(tab.key)}
+            onClick={() => setActiveTab(tab.key as Tab)}
             className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
               activeTab === tab.key
                 ? "border-primary-500 text-primary-400"
@@ -246,11 +246,7 @@ export function SurveyDetailPage() {
             <div className="mt-6 pt-6 border-t border-dark-700">
               <h4 className="text-sm font-medium text-dark-200 mb-3">Expanded Queries</h4>
               <div className="space-y-2">
-                {(survey.expanded_queries as Record<string, unknown>)?.sub_queries &&
-                  (
-                    (survey.expanded_queries as { sub_queries: Array<{ query: string; focus: string }> })
-                      .sub_queries
-                  ).map((q, i) => (
+                {(survey.expanded_queries as { sub_queries?: Array<{ query: string; focus: string }> })?.sub_queries?.map((q, i) => (
                     <div key={i} className="bg-dark-800 rounded-lg p-3">
                       <p className="text-sm text-dark-200">{q.query}</p>
                       <span className="text-xs text-primary-400">{q.focus}</span>

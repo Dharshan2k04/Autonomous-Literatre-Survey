@@ -41,6 +41,7 @@ services:
       DATABASE_URL: postgresql+asyncpg://litsurvey:litsurvey_dev@postgres:5432/litsurvey
       REDIS_HOST: redis
       REDIS_PORT: 6379
+      DEBUG: "true"
     depends_on:
       postgres:
         condition: service_healthy
