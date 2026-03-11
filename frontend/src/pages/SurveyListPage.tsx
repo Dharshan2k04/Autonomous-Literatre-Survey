@@ -56,7 +56,9 @@ export function SurveyListPage() {
     try {
       await surveyApi.delete(id);
       toast.success("Survey deleted");
-      loadSurveys();
+      // Optimistic update: remove from local state instead of refetching all surveys
+      setSurveys((prev) => prev.filter((s) => s.id !== id));
+      setTotal((prev) => prev - 1);
     } catch {
       toast.error("Failed to delete survey");
     }

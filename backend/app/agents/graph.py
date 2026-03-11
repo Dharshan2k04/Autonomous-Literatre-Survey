@@ -2,12 +2,11 @@
 
 from __future__ import annotations
 
-import asyncio
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any, TypedDict
 
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.agents.citation_explorer import CitationExplorerAgent
@@ -206,14 +205,14 @@ class SurveyWorkflow:
         agent = SurveyArchitectAgent(self.llm)
 
         # Prepare papers with citation info
+        # Build O(1) lookup dict to avoid O(n²) linear search per paper
+        citations_by_number = {c.get("ieee_number"): c for c in state["formatted_citations"]}
+
         papers_with_citations = []
         for idx, paper_data in enumerate(state["raw_papers"]):
             paper_info = {**paper_data}
-            # Find matching citation
-            matching_citation = next(
-                (c for c in state["formatted_citations"] if c.get("ieee_number") == idx + 1),
-                None,
-            )
+            # O(1) dict lookup instead of linear scan
+            matching_citation = citations_by_number.get(idx + 1)
             if matching_citation:
                 paper_info["ieee_number"] = matching_citation["ieee_number"]
                 paper_info["summary"] = matching_citation.get("summary", "")
@@ -327,10 +326,11 @@ class SurveyWorkflow:
         )
         db_papers = result.scalars().all()
 
+        # Build O(1) lookup dict to avoid O(n²) linear search per paper
+        citations_by_number = {c.get("ieee_number"): c for c in citations}
+
         for idx, db_paper in enumerate(db_papers):
-            matching = next(
-                (c for c in citations if c.get("ieee_number") == idx + 1), None
-            )
+            matching = citations_by_number.get(idx + 1)
             if matching:
                 db_paper.ieee_number = matching["ieee_number"]
                 db_paper.ieee_citation = matching.get("ieee_citation")
@@ -345,29 +345,23 @@ class SurveyWorkflow:
         error: str | None = None,
         completed: bool = False,
     ) -> None:
-        """Update survey status in the database."""
-        result = await self.db.execute(
-            select(Survey).where(Survey.id == uuid.UUID(survey_id))
+        """Update survey status in the database using a direct UPDATE statement."""
+        values: dict[str, Any] = {"status": status, "progress": progress}
+        if error:
+            values["error_message"] = error
+        if completed:
+            values["completed_at"] = datetime.now(UTC)
+        await self.db.execute(
+            update(Survey).where(Survey.id == uuid.UUID(survey_id)).values(**values)
         )
-        survey = result.scalar_one_or_none()
-        if survey:
-            survey.status = status
-            survey.progress = progress
-            if error:
-                survey.error_message = error
-            if completed:
-                survey.completed_at = datetime.now(timezone.utc)
-            await self.db.flush()
+        await self.db.flush()
 
     async def _update_survey_field(self, survey_id: str, field: str, value: Any) -> None:
-        """Update a specific field on the survey."""
-        result = await self.db.execute(
-            select(Survey).where(Survey.id == uuid.UUID(survey_id))
+        """Update a specific field on the survey using a direct UPDATE statement."""
+        await self.db.execute(
+            update(Survey).where(Survey.id == uuid.UUID(survey_id)).values(**{field: value})
         )
-        survey = result.scalar_one_or_none()
-        if survey:
-            setattr(survey, field, value)
-            await self.db.flush()
+        await self.db.flush()
 
     async def _broadcast_progress(
         self, survey_id: str, status: SurveyStatus, progress: int, message: str

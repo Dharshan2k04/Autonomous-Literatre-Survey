@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import uuid
-from typing import Any
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -64,22 +63,21 @@ class SurveyService:
     async def list_surveys(
         self, user_id: uuid.UUID, skip: int = 0, limit: int = 20
     ) -> tuple[list[Survey], int]:
-        """List surveys for a user with pagination."""
-        # Count
-        count_result = await self.db.execute(
-            select(func.count(Survey.id)).where(Survey.user_id == user_id)
-        )
-        total = count_result.scalar() or 0
+        """List surveys for a user with pagination.
 
-        # Fetch
+        Uses a window function to retrieve the total count and the current page
+        in a single database round-trip instead of two separate queries.
+        """
         result = await self.db.execute(
-            select(Survey)
+            select(Survey, func.count(Survey.id).over().label("total"))
             .where(Survey.user_id == user_id)
             .order_by(Survey.created_at.desc())
             .offset(skip)
             .limit(limit)
         )
-        surveys = list(result.scalars().all())
+        rows = result.all()
+        surveys = [row[0] for row in rows]
+        total = rows[0][1] if rows else 0
         return surveys, total
 
     async def delete_survey(self, survey_id: uuid.UUID, user_id: uuid.UUID) -> None:

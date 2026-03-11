@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, Link } from "react-router-dom";
 import {
   ArrowLeft,
@@ -69,7 +69,7 @@ export function SurveyDetailPage() {
     }
   }, [survey?.status]);
 
-  const loadSurvey = async () => {
+  const loadSurvey = useCallback(async () => {
     try {
       const res = await surveyApi.get(surveyId!);
       setSurvey(res.data);
@@ -82,7 +82,7 @@ export function SurveyDetailPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [surveyId]);
 
   const handleChat = async () => {
     if (!chatInput.trim() || chatLoading) return;
